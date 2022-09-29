@@ -5,37 +5,18 @@
 # License: Apache v2.0 <http://www.apache.org/licenses/LICENSE-2.0.html>
 
 from __future__ import annotations
-# some of these types are deprecated: https://www.python.org/dev/peps/pep-0585/
 from typing import Protocol, Iterator, Tuple, TypeVar, Optional
+import collections
+import csv
+import heapq
+
 
 T = TypeVar('T')
-
 Location = TypeVar('Location')
 
 
 class Graph(Protocol):
     def neighbors(self, id: Location) -> list[Location]: pass
-
-
-class SimpleGraph:
-    def __init__(self):
-        self.edges: dict[Location, list[Location]] = {}
-
-    def neighbors(self, id: Location) -> list[Location]:
-        return self.edges[id]
-
-
-example_graph = SimpleGraph()
-example_graph.edges = {
-    'A': ['B'],
-    'B': ['C'],
-    'C': ['B', 'D', 'F'],
-    'D': ['C', 'E'],
-    'E': ['F'],
-    'F': [],
-}
-
-import collections
 
 
 class Queue:
@@ -83,11 +64,7 @@ def draw_grid(graph, **style):
     print("~~~" * graph.width)
 
 
-# data from main article
-DIAGRAM1_WALLS = [from_id_width(id, width=30) for id in
-                  [21, 22, 51, 52, 81, 82, 93, 94, 111, 112, 123, 124, 133, 134, 141, 142, 153, 154, 163, 164, 171, 172,
-                   173, 174, 175, 183, 184, 193, 194, 201, 202, 203, 204, 205, 213, 214, 223, 224, 243, 244, 253, 254,
-                   273, 274, 283, 284, 303, 304, 313, 314, 333, 334, 343, 344, 373, 374, 403, 404, 433, 434]]
+
 
 GridLocation = Tuple[int, int]
 
@@ -128,7 +105,7 @@ class GridWithWeights(SquareGrid):
         return self.weights.get(to_node, 1)
 
 
-import csv
+
 
 
 def read_samfundet_data(filename, token):
@@ -149,10 +126,10 @@ def read_samfundet_data(filename, token):
 def create_diagram(height, width, map_data):
     print(map_data)
     file_end = '.csv'
-    csv_data = map_data + file_end
+    csv_data = 'Samfundet_map_Edgar_full.csv'  # map_data + file_end
     print(csv_data)
     map_diagram = GridWithWeights(width, height)
-    map_diagram.walls = read_samfundet_data(map_data, '-1')
+    map_diagram.walls = read_samfundet_data(csv_data, '-1')
     map_diagram.weights = {loc: 1 for loc in read_samfundet_data(csv_data, '1')}
     map_diagram.weights = {loc: 2 for loc in read_samfundet_data(csv_data, '2')}
     map_diagram.weights = {loc: 3 for loc in read_samfundet_data(csv_data, '3')}
@@ -161,22 +138,7 @@ def create_diagram(height, width, map_data):
     return map_diagram
 
 
-# Das ist der Graf
-diagram4 = GridWithWeights(39, 47)
 
-diagram4.walls = read_samfundet_data('Samfundet_map_2.csv', '-1')
-# das sind die gewichte
-diagram4.weights = {
-    loc: 1 for loc in read_samfundet_data('Samfundet_map_2.csv', '1')
-}
-diagram4.weights = {
-    loc: 2 for loc in read_samfundet_data('Samfundet_map_2.csv', '2')
-}
-diagram4.weights = {
-    loc: 3 for loc in read_samfundet_data('Samfundet_map_2.csv', '3')
-}
-
-import heapq
 
 
 class PriorityQueue:
@@ -192,34 +154,6 @@ class PriorityQueue:
     def get(self) -> T:
         return heapq.heappop(self.elements)[1]
 
-
-def dijkstra_search(graph: WeightedGraph, start: Location, goal: Location):
-    frontier = PriorityQueue()
-    frontier.put(start, 0)
-    came_from: dict[Location, Optional[Location]] = {}
-    cost_so_far: dict[Location, float] = {}
-    came_from[start] = None
-    cost_so_far[start] = 0
-
-    while not frontier.empty():
-        current: Location = frontier.get()
-
-        if current == goal:
-            break
-
-        for next in graph.neighbors(current):
-            new_cost = cost_so_far[current] + graph.cost(current, next)
-            if next not in cost_so_far or new_cost < cost_so_far[next]:
-                cost_so_far[next] = new_cost
-                priority = new_cost
-                frontier.put(next, priority)
-                came_from[next] = current
-
-    return came_from, cost_so_far
-
-
-# thanks to @m1sp <Jaiden Mispy> for this simpler version of
-# reconstruct_path that doesn't have duplicate entries
 
 def reconstruct_path(came_from: dict[Location, Location],
                      start: Location, goal: Location) -> list[Location]:
@@ -270,26 +204,6 @@ def a_star_search(graph: WeightedGraph, start: Location, goal: Location):
     return came_from, cost_so_far
 
 
-def breadth_first_search(graph: Graph, start: Location, goal: Location):
-    frontier = Queue()
-    frontier.put(start)
-    came_from: dict[Location, Optional[Location]] = {}
-    came_from[start] = None
-
-    while not frontier.empty():
-        current: Location = frontier.get()
-
-        if current == goal:
-            break
-
-        for next in graph.neighbors(current):
-            if next not in came_from:
-                frontier.put(next)
-                came_from[next] = current
-
-    return came_from
-
-
 class SquareGridNeighborOrder(SquareGrid):
     def neighbors(self, id):
         (x, y) = id
@@ -297,19 +211,6 @@ class SquareGridNeighborOrder(SquareGrid):
         results = filter(self.in_bounds, neighbors)
         results = filter(self.passable, results)
         return list(results)
-
-
-def test_with_custom_order(neighbor_order):
-    if neighbor_order:
-        g = SquareGridNeighborOrder(30, 15)
-        g.NEIGHBOR_ORDER = neighbor_order
-    else:
-        g = SquareGrid(30, 15)
-    g.walls = DIAGRAM1_WALLS
-    start, goal = (8, 7), (27, 2)
-    came_from = breadth_first_search(g, start, goal)
-    draw_grid(g, path=reconstruct_path(came_from, start=start, goal=goal),
-              point_to=came_from, start=start, goal=goal)
 
 
 class GridWithAdjustedWeights(GridWithWeights):
