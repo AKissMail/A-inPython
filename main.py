@@ -12,7 +12,7 @@ from implementation_of_A_star import *
 
 # config variables
 task = 4
-path_to_map = 'Samfundet_map_1'
+path_to_map = 'Samfundet_map_1.csv'  # there is a bug - see line 163 in implementation_of_A_star.py
 
 if task == 1:
     start, goal = (18, 27), (32, 40)
@@ -23,7 +23,7 @@ elif task == 3:
 elif task == 4:
     start, goal = (32, 6), (32, 28)
 else:
-    print('I dont know where to start')
+    print('I dont know where to start :(')
     exit()
 
 came_from, cost_so_far = a_star_search(create_diagram(47, 39, path_to_map), start, goal)

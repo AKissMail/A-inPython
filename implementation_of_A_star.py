@@ -140,8 +140,8 @@ def read_samfundet_data(filename, token):
     int_row = 0
     results = []
     with open(filename) as csvfile:
-        reader = csv.reader(csvfile)  # change contents to floats
-        for row in reader:  # each row is a list
+        reader = csv.reader(csvfile)
+        for row in reader:
             int_item = 0
             for item in row:
                 if item == token:
@@ -160,17 +160,21 @@ def read_samfundet_data(filename, token):
 # @param map_data: that is the path to the map data.
 # @return: the graph according to the map data.
 def create_diagram(height, width, map_data):
-    print('print map_data:' + map_data)  # todo
-    file_end = '.csv'
-    csv_data = map_data + file_end
-    print('csv_data:' + csv_data)
-    csv_data = 'Samfundet_map_Edgar_full.csv'
+    # I was not abel to get to work. For some reason the path as string get lost.
+    # If I just try example.csv in main.py, I got hier an empty sting ''.
+    # If I try example that works, but if when add in 168 the .csv, I just got '.csv'
+    # Me, the Internet and tow TA where not able to find the reason, so I just bypass it in 171.
+    # Not nice, but it work.
+    # print('print map_data:' + map_data)  # todo
+    # file_end = '.csv'
+    # map_data = map_data + file_end
+    map_data = 'Samfundet_map_Edgar_full.csv'
     map_diagram = GridWithWeights(width, height)
-    map_diagram.walls = read_samfundet_data(csv_data, '-1')
-    map_diagram.weights = {loc: 1 for loc in read_samfundet_data(csv_data, '1')}
-    map_diagram.weights = {loc: 2 for loc in read_samfundet_data(csv_data, '2')}
-    map_diagram.weights = {loc: 3 for loc in read_samfundet_data(csv_data, '3')}
-    map_diagram.weights = {loc: 4 for loc in read_samfundet_data(csv_data, '4')}
+    map_diagram.walls = read_samfundet_data(map_data, '-1')
+    map_diagram.weights = {loc: 1 for loc in read_samfundet_data(map_data, '1')}
+    map_diagram.weights = {loc: 2 for loc in read_samfundet_data(map_data, '2')}
+    map_diagram.weights = {loc: 3 for loc in read_samfundet_data(map_data, '3')}
+    map_diagram.weights = {loc: 4 for loc in read_samfundet_data(map_data, '4')}
 
     return map_diagram
 
